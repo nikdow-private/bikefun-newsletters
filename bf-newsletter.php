@@ -128,7 +128,7 @@ function save_bf_newsletter(){
     
     global $post;
     
-    if( 'bf_newsletter' === $_POST['post_type'] ) {
+    if( 'bf_newsletter' === $_POST['post_type']??null ) {
 
     // - still require nonce
 
