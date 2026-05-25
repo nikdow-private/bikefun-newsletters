@@ -169,7 +169,9 @@ function save_bf_newsletter(){
                     "SELECT p.post_title as email "
                     . "FROM " . $wpdb->posts . " p" .
                     " WHERE p.post_type='bf_subscription' AND p.`post_status`='private'", array() );
+                error_log( $query);
                 $sendTo = $wpdb->get_results ( $query );
+                error_log( 'count($sendTo)' . count($sendTo) );
             }
             $testing = false; // true on dev computer - not the same as test addresses from UI
             $count =0;
@@ -184,7 +186,10 @@ function save_bf_newsletter(){
                 $email = trim($one->email);
                 if( $email === "") continue;
                 if ( $testing ) $email = "nik@nikdow.net";
-                if( ! $validator->isValid( $email, new RFCValidation() )) continue;
+                if( ! $validator->isValid( $email, new RFCValidation() )) {
+                  error_log( 'invalid email address: ' . $email );
+                  continue;
+                }
 
                 $subject = $post->post_title;
                 if ( $testing ) $subject .= " - " . $one->email;
@@ -193,6 +198,7 @@ function save_bf_newsletter(){
                 $headers[] = "Content-type: text/html";
                 $message = str_replace( "%email%", $email, $post->post_content );
                 $message = str_replace("\r\n", "<br/>\r\n", $message );
+                error_log( 'sending ' . $email );
                 wp_mail( $email, $subject, $message, $headers );
                 $count++;
                 update_post_meta($post->ID, "bf_newsletter_progress", json_encode( array ( 
