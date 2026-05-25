@@ -173,8 +173,6 @@ function save_bf_newsletter(){
             }
             $testing = false; // true on dev computer - not the same as test addresses from UI
             $count =0;
-            $console = new wpdb( DB_USER, DB_PASSWORD, 'console', DB_HOST );
-            $fromParam = [];
             $fromAddrStr = get_option('newsletter-sender-address');
             $validator = new EmailValidator();
             if( ! $validator->isValid($fromAddrStr, new RFCValidation())){
@@ -185,33 +183,17 @@ function save_bf_newsletter(){
             foreach ( $sendTo as $one ) {
                 $email = trim($one->email);
                 if( $email === "") continue;
-                if ( $testing ) $email = "nik@cbdweb.net";
+                if ( $testing ) $email = "nik@nikdow.net";
                 if( ! $validator->isValid( $email, new RFCValidation() )) continue;
-
-                $message = str_replace( "%email%", $email, $post->post_content );
-                $message = str_replace("\r\n", "<br/>\r\n", $message );
 
                 $subject = $post->post_title;
                 if ( $testing ) $subject .= " - " . $one->email;
-/*                $headers = array();
+                $headers = array();
                 $headers[] = 'From: "' . get_option('bf-organisation') . '" <' . get_option('newsletter-sender-address') . '>';
                 $headers[] = "Content-type: text/html";
                 $message = str_replace( "%email%", $email, $post->post_content );
                 $message = str_replace("\r\n", "<br/>\r\n", $message );
-                wp_mail( $email, $subject, $message, $headers );*/
-
-                $params = [
-                    'fromParam' => $fromParam,
-                    'mailto' => $email,
-                    'subject' => $subject,
-                    'textmessagebody' => 'Your email reader is not able to display this rich-text email',
-                    'htmlmessagebody' => $message,
-                ];
-                $today = new DateTime();
-                $created = $today->format('Y-m-d H:i:s');
-                if( ! $console->insert('email_queue', ['json'=>json_encode($params), 'domain'=>'bikefun', 'created'=>$created ]) ){
-                    error_log('Error inserting to email_queue ' . $email );
-                }
+                wp_mail( $email, $subject, $message, $headers );
                 $count++;
                 update_post_meta($post->ID, "bf_newsletter_progress", json_encode( array ( 
                     'count'=>$count, 'total'=>Count( $sendTo ),
